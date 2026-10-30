@@ -237,7 +237,10 @@ public class FullscreenVideoScalePatch {
         VideoScaleMode mode = Settings.FULLSCREEN_VIDEO_SCALE.get();
         final float pinch = Math.max(1f, DisableFullscreenGesturesPatch.getPinchScale());
         if (mode == VideoScaleMode.ZOOM) {
-            final float scale = Math.max(displayW / contentW, displayH / contentH) * pinch;
+            // Partial zoom: a 16:9 video at 1.125x appears approximately 18:9.
+        // Retain uniform scaling and avoid cropping as much as fullscreen zoom.
+        final float scale = Math.min(1.125f,
+                Math.max(displayW / contentW, displayH / contentH)) * pinch;
             view.setPivotX(contentLeft + contentW / 2f);
             view.setPivotY(contentTop + contentH / 2f);
             view.setScaleX(scale);

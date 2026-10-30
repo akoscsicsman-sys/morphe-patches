@@ -58,6 +58,29 @@ public class DisableFullscreenGesturesPatch {
     }
 
     /**
+     * Pre-21.36 pinch toggle. This is intentionally confined to old YouTube
+     * versions by the bytecode injection and does not change newer gestures.
+     * A false onScaleBegin result stops the native snap-to-fill zoom.
+     */
+    public static boolean togglePartialZoomOnPinchBegin() {
+        if (disableZoomGesture()) {
+            return false;
+        }
+        if (app.morphe.extension.youtube.shared.PlayerType.getCurrent()
+                != app.morphe.extension.youtube.shared.PlayerType.WATCH_WHILE_FULLSCREEN) {
+            return false;
+        }
+        FullscreenVideoScalePatch.VideoScaleMode current = Settings.FULLSCREEN_VIDEO_SCALE.get();
+        Settings.FULLSCREEN_VIDEO_SCALE.save(
+                current == FullscreenVideoScalePatch.VideoScaleMode.ZOOM
+                        ? FullscreenVideoScalePatch.VideoScaleMode.DEFAULT
+                        : FullscreenVideoScalePatch.VideoScaleMode.ZOOM
+        );
+        FullscreenVideoScalePatch.applyScale();
+        return true;
+    }
+
+    /**
      * 21.36+ PlayerView is a 16:9 box. Native pinch scales inside that box (Nx HUD)
      * and never eats the window letterbox. Scale the player view while pinched.
      * At scale 1 this does not write scaleX/Y so Fullscreen video scale can own

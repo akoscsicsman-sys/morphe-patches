@@ -44,8 +44,11 @@ public class FullscreenVideoScaleButton {
                     controlsView,
                     getIconName(Settings.FULLSCREEN_VIDEO_SCALE.get()),
                     FullscreenVideoScaleButton::isOverlayButtonEnabled,
-                    view -> cycleScaleMode(),
-                    null
+                    view -> toggleScaleMode(),
+                    view -> {
+                        CustomZoomDialog.show(view.getContext());
+                        return true;
+                    }
             );
             overlayButtonRef = new WeakReference<>(added);
         } catch (Exception ex) {
@@ -70,8 +73,11 @@ public class FullscreenVideoScaleButton {
                     () -> isOverlayButtonEnabled()
                             ? LegacyPlayerControlButton.ButtonVisibility.ENABLED
                             : LegacyPlayerControlButton.ButtonVisibility.DISABLED,
-                    view -> cycleScaleMode(),
-                    null
+                    view -> toggleScaleMode(),
+                    view -> {
+                        CustomZoomDialog.show(view.getContext());
+                        return true;
+                    }
             );
         } catch (Exception ex) {
             Logger.printException(() -> "initializeLegacyButton failure", ex);
@@ -90,19 +96,17 @@ public class FullscreenVideoScaleButton {
                 || type == PlayerType.WATCH_WHILE_SLIDING_MAXIMIZED_FULLSCREEN;
     }
 
-    private static void cycleScaleMode() {
+    /** Tap: toggle partial zoom. Long press: choose any 1.0-1.5x factor. */
+    private static void toggleScaleMode() {
         try {
             VideoScaleMode current = Settings.FULLSCREEN_VIDEO_SCALE.get();
-            VideoScaleMode next = switch (current) {
-                case DEFAULT -> VideoScaleMode.STRETCH;
-                case STRETCH -> VideoScaleMode.ZOOM;
-                case ZOOM -> VideoScaleMode.DEFAULT;
-            };
+            VideoScaleMode next = current == VideoScaleMode.ZOOM
+                    ? VideoScaleMode.DEFAULT : VideoScaleMode.ZOOM;
             Settings.FULLSCREEN_VIDEO_SCALE.save(next);
             updateButtonIcon(next);
             FullscreenVideoScalePatch.applyScale();
         } catch (Exception ex) {
-            Logger.printException(() -> "cycleScaleMode failure", ex);
+            Logger.printException(() -> "toggleScaleMode failure", ex);
         }
     }
 

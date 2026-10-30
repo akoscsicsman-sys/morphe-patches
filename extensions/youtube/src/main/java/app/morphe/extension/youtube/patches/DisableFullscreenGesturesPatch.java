@@ -58,26 +58,15 @@ public class DisableFullscreenGesturesPatch {
     }
 
     /**
-     * Pre-21.36 pinch toggle. This is intentionally confined to old YouTube
-     * versions by the bytecode injection and does not change newer gestures.
-     * A false onScaleBegin result stops the native snap-to-fill zoom.
+     * Pre-21.36: suppress YouTube's native scale gesture in fullscreen, without
+     * modifying our custom zoom state. The dedicated player button controls
+     * zoom, and its long-press dialog controls the magnification.
      */
     public static boolean togglePartialZoomOnPinchBegin() {
-        if (disableZoomGesture()) {
-            return false;
-        }
-        if (app.morphe.extension.youtube.shared.PlayerType.getCurrent()
-                != app.morphe.extension.youtube.shared.PlayerType.WATCH_WHILE_FULLSCREEN) {
-            return false;
-        }
-        FullscreenVideoScalePatch.VideoScaleMode current = Settings.FULLSCREEN_VIDEO_SCALE.get();
-        Settings.FULLSCREEN_VIDEO_SCALE.save(
-                current == FullscreenVideoScalePatch.VideoScaleMode.ZOOM
-                        ? FullscreenVideoScalePatch.VideoScaleMode.DEFAULT
-                        : FullscreenVideoScalePatch.VideoScaleMode.ZOOM
-        );
-        FullscreenVideoScalePatch.applyScale();
-        return true;
+        app.morphe.extension.youtube.shared.PlayerType type =
+                app.morphe.extension.youtube.shared.PlayerType.getCurrent();
+        return type == app.morphe.extension.youtube.shared.PlayerType.WATCH_WHILE_FULLSCREEN
+                || type == app.morphe.extension.youtube.shared.PlayerType.WATCH_WHILE_SLIDING_MAXIMIZED_FULLSCREEN;
     }
 
     /**

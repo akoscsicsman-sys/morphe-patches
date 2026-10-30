@@ -1,9 +1,9 @@
-name: Experimental 18-9 Zoom Build
+name: Adjustable Partial Zoom Build
 
 on:
   push:
     branches:
-      - feature/18-9-zoom-21-30-216
+      - feature/adjustable-zoom-21-20-405
   workflow_dispatch:
 
 permissions:
@@ -27,6 +27,6 @@ jobs:
       - name: Upload patch bundle
         uses: actions/upload-artifact@v4
         with:
-          name: morphe-18-9-zoom-experimental
+          name: morphe-adjustable-zoom-21-20-405
           path: patches/build/libs/*.mpp
           if-no-files-found: error

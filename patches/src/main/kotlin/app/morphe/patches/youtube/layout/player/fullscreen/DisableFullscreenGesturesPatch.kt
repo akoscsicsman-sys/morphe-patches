@@ -114,6 +114,24 @@ val disableFullscreenGesturesPatch = bytecodePatch(
             """
         )
 
+        // In older YouTube builds the scale detector invokes onScaleBegin before
+        // the native fullscreen zoom. Returning false stops the native scale
+        // gesture, while the extension toggles our gentler 18:9 framing.
+        if (is_20_40_or_greater && !is_21_36_or_greater) {
+            VideoZoomScaleBeginFingerprint.method.addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static { }, $EXTENSION_CLASS->togglePartialZoomOnPinchBegin()Z
+                    move-result v0
+                    if-eqz v0, :allow_native_partial_zoom
+                    const/4 v0, 0x0
+                    return v0
+                    :allow_native_partial_zoom
+                    nop
+                """
+            )
+        }
+
         if (is_21_36_or_greater) {
             // Native pinch scales inside the 16:9 PlayerView (Nx HUD, side bars
             // stay). Scale that view with the gesture so the bars are eaten.
